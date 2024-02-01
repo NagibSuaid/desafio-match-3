@@ -4,8 +4,12 @@ using UnityEngine;
 public class BoardSequence
 {
     public List<Vector2Int> matchedPosition;
+    public List<ExplosionInfo> explosions;
     public List<AddedTileInfo> addedTiles;
     public List<MovedTileInfo> movedTiles;
+    public int pointsGained;
+    public int newPointTotal;
+    public Dictionary<int, int> tilesDestroyedPerType;
 
     public override string ToString()
     {
@@ -14,6 +18,14 @@ public class BoardSequence
         for (int i = 0; i < matchedPosition.Count; i++)
         {
             log += $"{matchedPosition[i]}, ";
+        }
+        log = "explodedTiles: \n";
+        for (int i = 0; i < explosions.Count; i++)
+        {
+            foreach (var explodedTile in explosions[i].explodedTiles)
+            {
+                log += $"{explodedTile}, ";
+            }
         }
 
         log += "\naddedTiles: \n";
@@ -27,6 +39,8 @@ public class BoardSequence
         {
             log += $"{movedTiles[i].from} - {movedTiles[i].to}, ";
         }
+        log += $"\npointsGained: {pointsGained}\n";
+        log += $"\nnewPointTotal: {newPointTotal}\n";
 
         //log = $"matchedPosition: {matchedPosition.Count} - addedTiles: {addedTiles.Count} - movedTiles: {movedTiles.Count}";
         return log;

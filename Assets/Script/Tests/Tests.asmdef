@@ -1,0 +1,34 @@
+{
+    "name": "Tests",
+    "rootNamespace": "",
+    "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "Unity.Timeline.Editor",
+        "Unity.VisualStudio.Editor",
+        "Unity.PlasticSCM.Editor",
+        "Unity.PlasticSCM.EditorTests",
+        "Match3"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll",
+        "unityplastic.dll",
+        "DOTween.dll",
+        "DOTweenEditor.dll",
+        "Unity.Plastic.Antlr3.Runtime.dll",
+        "log4netPlastic.dll",
+        "Unity.Plastic.Newtonsoft.Json.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

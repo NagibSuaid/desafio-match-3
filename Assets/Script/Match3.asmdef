@@ -1,0 +1,19 @@
+{
+    "name": "Match3",
+    "rootNamespace": "",
+    "references": [
+        "GUID:7923658467bffc44a8a7dba344deb844"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "DOTween.dll",
+        "DOTweenEditor.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -16,7 +16,7 @@ public class BoardView : MonoBehaviour
 
     private TileView[][] _tiles;
 
-    public event Action<int, int> onTileClick;
+    public event Action<int, int> OnTileClick;
 
     public void CreateBoard(List<List<Tile>> board)
     {
@@ -35,12 +35,12 @@ public class BoardView : MonoBehaviour
                 TileSpotView tileSpot = Instantiate(tileSpotPrefab);
                 tileSpot.transform.SetParent(boardContainer.transform, false);
                 tileSpot.SetPosition(x, y);
-                tileSpot.onClick += OnTileSpotClick;
+                tileSpot.OnClick += OnTileSpotClick;
 
                 _tileSpots[y][x] = tileSpot;
 
                 int tileTypeIndex = board[y][x].type;
-                if (tileTypeIndex > -1)
+                if (tileTypeIndex >= 0)
                 {
                     TileView tilePrefab = tilePrefabRepository.tileTypePrefabList[tileTypeIndex];
                     TileView tile = Instantiate(tilePrefab);
@@ -54,6 +54,7 @@ public class BoardView : MonoBehaviour
 
     public void DestroyBoard()
     {
+        if (_tiles == null || _tileSpots == null) { return; }
         for (int y = 0; y < _tiles.Length; y++)
         {
             for (int x = 0; x < _tiles[y].Length; x++)
@@ -73,22 +74,84 @@ public class BoardView : MonoBehaviour
         swapSequence.Append(_tileSpots[fromY][fromX].AnimatedSetTile(_tiles[toY][toX]));
         swapSequence.Join(_tileSpots[toY][toX].AnimatedSetTile(_tiles[fromY][fromX]));
 
-        TileView SwapedTile = _tiles[fromY][fromX];
-        _tiles[fromY][fromX] = _tiles[toY][toX];
-        _tiles[toY][toX] = SwapedTile;
-
+        (_tiles[toY][toX], _tiles[fromY][fromX]) = (_tiles[fromY][fromX], _tiles[toY][toX]);
         return swapSequence;
     }
 
     public Tween DestroyTiles(List<Vector2Int> matchedPosition)
     {
+        Sequence seq = DOTween.Sequence();
         for (int i = 0; i < matchedPosition.Count; i++)
         {
             Vector2Int position = matchedPosition[i];
-            Destroy(_tiles[position.y][position.x].gameObject);
+            var tile = _tiles[position.y][position.x];
             _tiles[position.y][position.x] = null;
+            seq.Join(DOVirtual.DelayedCall(0.1f, () =>
+            {
+                tile.transform.DOScale(0, .1f).OnComplete(() => Destroy(tile.gameObject));
+            }));
+
         }
-        return DOVirtual.DelayedCall(0.2f, () => { });
+        return seq;
+    }
+
+    public Tween ExplodeTiles(List<ExplosionInfo> explosions)
+    {
+        Sequence seq = DOTween.Sequence();
+        foreach (var explosion in explosions)
+        {
+            seq.AppendInterval(.2f);
+            Sequence subSeq = ExplosionTween(explosion);
+            seq.Append(subSeq);
+        }
+        seq.AppendInterval(.2f);
+        return seq;
+    }
+
+    private Sequence ExplosionTween(ExplosionInfo explosion)
+    {
+        Sequence subSeq = DOTween.Sequence();
+        foreach (var position in explosion.explodedTiles)
+        {
+            var tile = _tiles[position.y][position.x];
+            _tiles[position.y][position.x] = null;
+            float t;
+            switch (explosion.type)
+            {
+                case ExplosionInfo.ExplosionType.Color:
+                    t = .15f * Vector2.Distance(position, explosion.origin);
+                    subSeq.Insert(0f, DOTween.Shake(() => tile.transform.position, (x) => tile.transform.position = x, t + .15f));
+                    subSeq.Insert(t, tile.img.DOFade(0, .15f));
+                    subSeq.InsertCallback(t + .151f, () => Destroy(tile.gameObject));
+                    break;
+                case ExplosionInfo.ExplosionType.Area:
+                    t = .15f * Vector2.Distance(position, explosion.origin);
+                    subSeq.Insert(t, tile.transform.DOScale(0, .15f));
+                    subSeq.InsertCallback(t + .151f, () => Destroy(tile.gameObject));
+                    break;
+                case ExplosionInfo.ExplosionType.Line:
+                    Vector2 difference = position - explosion.origin;
+                    t = .15f * difference.magnitude;
+                    if (difference.y == 0)
+                    {
+                        subSeq.Insert(t, tile.transform.DOScaleY(0, .1f));
+                    }
+                    else
+                    {
+                        subSeq.Insert(t, tile.transform.DOScaleX(0, .1f));
+                    }
+                    subSeq.InsertCallback(t + .11f, () => Destroy(tile.gameObject));
+                    break;
+                default:
+                    subSeq.Append(tile.transform.DOScale(0, .1f));
+                    subSeq.AppendCallback(() => Destroy(tile.gameObject));
+                    break;
+            }
+
+
+        }
+
+        return subSeq;
     }
 
     public Tween MoveTiles(List<MovedTileInfo> movedTiles)
@@ -145,6 +208,17 @@ public class BoardView : MonoBehaviour
 
     private void OnTileSpotClick(int x, int y)
     {
-        onTileClick(x, y);
+        OnTileClick?.Invoke(x, y);
     }
+
+    public void HighlightTile(int x, int y)
+    {
+        _tileSpots[y][x].SetHighlighted(_tiles[y][x], true);
+    }
+
+    public void ClearHighlightedTiles(int x, int y)
+    {
+        _tileSpots[y][x].SetHighlighted(_tiles[y][x], false);
+    }
+
 }

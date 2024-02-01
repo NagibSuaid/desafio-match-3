@@ -10,7 +10,7 @@ public class TileSpotView : MonoBehaviour
     private int _x;
     private int _y;
 
-    public event Action<int, int> onClick;
+    public event Action<int, int> OnClick;
 
     private void Awake()
     {
@@ -19,7 +19,7 @@ public class TileSpotView : MonoBehaviour
 
     private void OnTileClick()
     {
-        onClick?.Invoke(_x, _y);
+        OnClick?.Invoke(_x, _y);
     }
 
     public void SetPosition(int x, int y)
@@ -38,7 +38,24 @@ public class TileSpotView : MonoBehaviour
     {
         tile.transform.SetParent(transform);
         tile.transform.DOKill();
+        tile.transform.DOScale(1f, .3f);
         return tile.transform.DOMove(transform.position, 0.3f);
+    }
+
+    Sequence s;
+    public void SetHighlighted(TileView tile, bool value = true)
+    {
+        if (!value)
+        {
+            s.Kill();
+            s = null;
+            tile.transform.DOScale(1f, .3f);
+            return;
+        }
+        s = DOTween.Sequence();
+        s.Append(tile.transform.DOScale(1.3f, .5f));
+        s.Append(tile.transform.DOScale(1f, .5f));
+        s.InsertCallback(1f, () => s.Restart());
     }
 
 }
